@@ -96,23 +96,33 @@ Deno.serve(async (req) => {
       });
     }
 
-    // Use service role — filter by email instead of listing ALL users
+    // Use service role to find user by email
     const adminClient = createClient(supabaseUrl, serviceRoleKey, {
       auth: { autoRefreshToken: false, persistSession: false },
     });
 
-    const { data: { users }, error } = await adminClient.auth.admin.listUsers({
-      page: 1,
-      perPage: 1,
-      filter: trimmedEmail,
-    });
-    if (error) throw error;
+    // Search through users with pagination to find exact email match
+    let foundUser = null;
+    let page = 1;
+    const perPage = 50;
 
-    const foundUser = users.find((u) => u.email?.toLowerCase() === trimmedEmail);
+    while (!foundUser) {
+      const { data: { users }, error } = await adminClient.auth.admin.listUsers({
+        page,
+        perPage,
+      });
+      if (error) throw error;
+      if (!users || users.length === 0) break;
+
+      foundUser = users.find((u) => u.email?.toLowerCase() === trimmedEmail) || null;
+      if (users.length < perPage) break;
+      page++;
+      if (page > 20) break; // safety limit
+    }
 
     if (!foundUser) {
       return new Response(JSON.stringify({ error: "User not found" }), {
-        status: 404,
+        status: 200,
         headers: { ...cors, "Content-Type": "application/json" },
       });
     }
@@ -126,11 +136,12 @@ Deno.serve(async (req) => {
 
     return new Response(
       JSON.stringify({ id: foundUser.id, name: profile?.name || trimmedEmail }),
-      { headers: { ...cors, "Content-Type": "application/json" } }
+      { status: 200, headers: { ...cors, "Content-Type": "application/json" } }
     );
-  } catch (err) {
-    return new Response(JSON.stringify({ error: err.message }), {
-      status: 500,
+  } catch (err: unknown) {
+    const message = err instanceof Error ? err.message : "Internal server error";
+    return new Response(JSON.stringify({ error: message }), {
+      status: 200,
       headers: { ...cors, "Content-Type": "application/json" },
     });
   }
