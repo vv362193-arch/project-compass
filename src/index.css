@@ -1,0 +1,136 @@
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  :root {
+    --background: 228 14% 8%;
+    --foreground: 210 20% 92%;
+
+    --card: 228 12% 11%;
+    --card-foreground: 210 20% 92%;
+
+    --popover: 228 12% 13%;
+    --popover-foreground: 210 20% 92%;
+
+    --primary: 221 83% 53%;
+    --primary-foreground: 0 0% 100%;
+
+    --secondary: 228 12% 16%;
+    --secondary-foreground: 210 20% 85%;
+
+    --muted: 228 10% 18%;
+    --muted-foreground: 215 15% 55%;
+
+    --accent: 228 12% 20%;
+    --accent-foreground: 210 20% 92%;
+
+    --destructive: 0 72% 51%;
+    --destructive-foreground: 0 0% 100%;
+
+    --border: 228 10% 18%;
+    --input: 228 10% 18%;
+    --ring: 221 83% 53%;
+
+    --radius: 0.5rem;
+
+    --sidebar-background: 228 14% 6%;
+    --sidebar-foreground: 210 20% 85%;
+    --sidebar-primary: 221 83% 53%;
+    --sidebar-primary-foreground: 0 0% 100%;
+    --sidebar-accent: 228 12% 14%;
+    --sidebar-accent-foreground: 210 20% 92%;
+    --sidebar-border: 228 10% 15%;
+    --sidebar-ring: 221 83% 53%;
+
+    /* Priority colors */
+    --priority-urgent: 0 72% 51%;
+    --priority-high: 25 95% 53%;
+    --priority-medium: 45 93% 47%;
+    --priority-low: 221 83% 53%;
+
+    /* Status colors */
+    --status-todo: 215 15% 55%;
+    --status-in-progress: 221 83% 53%;
+    --status-review: 270 60% 55%;
+    --status-done: 142 71% 45%;
+
+    /* Surfaces */
+    --surface-hover: 228 12% 14%;
+    --surface-active: 228 12% 16%;
+
+    /* Gradients */
+    --gradient-primary: linear-gradient(135deg, hsl(221 83% 53%), hsl(250 75% 55%));
+    --gradient-surface: linear-gradient(180deg, hsl(228 14% 10%), hsl(228 14% 8%));
+  }
+
+  .dark {
+    /* Already dark by default */
+  }
+}
+
+@layer base {
+  * {
+    @apply border-border;
+  }
+
+  body {
+    @apply bg-background text-foreground font-sans antialiased;
+    font-family: 'Inter', system-ui, -apple-system, sans-serif;
+  }
+
+  /* Custom scrollbar */
+  ::-webkit-scrollbar {
+    width: 6px;
+    height: 6px;
+  }
+  ::-webkit-scrollbar-track {
+    background: transparent;
+  }
+  ::-webkit-scrollbar-thumb {
+    background: hsl(var(--muted));
+    border-radius: 3px;
+  }
+  ::-webkit-scrollbar-thumb:hover {
+    background: hsl(var(--muted-foreground));
+  }
+}
+
+@layer utilities {
+  .priority-urgent {
+    color: hsl(var(--priority-urgent));
+  }
+  .priority-high {
+    color: hsl(var(--priority-high));
+  }
+  .priority-medium {
+    color: hsl(var(--priority-medium));
+  }
+  .priority-low {
+    color: hsl(var(--priority-low));
+  }
+  .bg-priority-urgent {
+    background-color: hsl(var(--priority-urgent) / 0.15);
+    color: hsl(var(--priority-urgent));
+  }
+  .bg-priority-high {
+    background-color: hsl(var(--priority-high) / 0.15);
+    color: hsl(var(--priority-high));
+  }
+  .bg-priority-medium {
+    background-color: hsl(var(--priority-medium) / 0.15);
+    color: hsl(var(--priority-medium));
+  }
+  .bg-priority-low {
+    background-color: hsl(var(--priority-low) / 0.15);
+    color: hsl(var(--priority-low));
+  }
+
+  .glass-surface {
+    background: hsl(var(--card) / 0.8);
+    backdrop-filter: blur(12px);
+    border: 1px solid hsl(var(--border));
+  }
+}
