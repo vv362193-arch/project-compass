@@ -18,6 +18,13 @@ function getCorsHeaders(req: Request) {
   };
 }
 
+function jsonResponse(cors: Record<string, string>, body: Record<string, unknown>) {
+  return new Response(JSON.stringify(body), {
+    status: 200,
+    headers: { ...cors, "Content-Type": "application/json" },
+  });
+}
+
 // Simple in-memory rate limiter: max 10 requests per minute per user
 const rateLimitMap = new Map<string, { count: number; resetAt: number }>();
 const RATE_LIMIT_MAX = 10;
@@ -50,10 +57,7 @@ Deno.serve(async (req) => {
     // Verify the caller is authenticated
     const authHeader = req.headers.get("Authorization");
     if (!authHeader) {
-      return new Response(JSON.stringify({ error: "Unauthorized" }), {
-        status: 401,
-        headers: { ...cors, "Content-Type": "application/json" },
-      });
+      return jsonResponse(cors, { error: "Unauthorized" });
     }
 
     // Verify token and extract user ID for rate limiting
@@ -63,26 +67,17 @@ Deno.serve(async (req) => {
     });
     const { data: { user: caller }, error: authError } = await anonClient.auth.getUser();
     if (authError || !caller) {
-      return new Response(JSON.stringify({ error: "Unauthorized" }), {
-        status: 401,
-        headers: { ...cors, "Content-Type": "application/json" },
-      });
+      return jsonResponse(cors, { error: "Unauthorized" });
     }
 
     // Rate limit check
     if (isRateLimited(caller.id)) {
-      return new Response(JSON.stringify({ error: "Too many requests. Try again later." }), {
-        status: 429,
-        headers: { ...cors, "Content-Type": "application/json" },
-      });
+      return jsonResponse(cors, { error: "Too many requests. Try again later." });
     }
 
     const { email } = await req.json();
     if (!email || typeof email !== "string") {
-      return new Response(JSON.stringify({ error: "Email is required" }), {
-        status: 400,
-        headers: { ...cors, "Content-Type": "application/json" },
-      });
+      return jsonResponse(cors, { error: "Email is required" });
     }
 
     const trimmedEmail = email.trim().toLowerCase();
@@ -90,10 +85,7 @@ Deno.serve(async (req) => {
     // Validate email format
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
     if (!emailRegex.test(trimmedEmail)) {
-      return new Response(JSON.stringify({ error: "Invalid email format" }), {
-        status: 400,
-        headers: { ...cors, "Content-Type": "application/json" },
-      });
+      return jsonResponse(cors, { error: "Invalid email format" });
     }
 
     // Use service role to find user by email
@@ -117,14 +109,11 @@ Deno.serve(async (req) => {
       foundUser = users.find((u) => u.email?.toLowerCase() === trimmedEmail) || null;
       if (users.length < perPage) break;
       page++;
-      if (page > 20) break; // safety limit
+      if (page > 20) break;
     }
 
     if (!foundUser) {
-      return new Response(JSON.stringify({ error: "User not found" }), {
-        status: 200,
-        headers: { ...cors, "Content-Type": "application/json" },
-      });
+      return jsonResponse(cors, { error: "User not found" });
     }
 
     // Return only the user id and name from profiles
@@ -134,15 +123,9 @@ Deno.serve(async (req) => {
       .eq("id", foundUser.id)
       .single();
 
-    return new Response(
-      JSON.stringify({ id: foundUser.id, name: profile?.name || trimmedEmail }),
-      { status: 200, headers: { ...cors, "Content-Type": "application/json" } }
-    );
+    return jsonResponse(cors, { id: foundUser.id, name: profile?.name || trimmedEmail });
   } catch (err: unknown) {
     const message = err instanceof Error ? err.message : "Internal server error";
-    return new Response(JSON.stringify({ error: message }), {
-      status: 200,
-      headers: { ...cors, "Content-Type": "application/json" },
-    });
+    return jsonResponse(cors, { error: message });
   }
 });

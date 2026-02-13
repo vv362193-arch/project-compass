@@ -2,12 +2,14 @@ import { Link } from 'react-router-dom';
 import { AppLayout } from '@/components/AppLayout';
 import { CreateProjectDialog } from '@/components/CreateProjectDialog';
 import { useProjects } from '@/hooks/useProjects';
+import { useAuth } from '@/hooks/useAuth';
 import { FolderOpen, Trash2, Users, ArrowRight } from 'lucide-react';
 import { format } from 'date-fns';
 import { motion } from 'framer-motion';
 
 export default function Index() {
   const { projects, isLoading, deleteProject } = useProjects();
+  const { user } = useAuth();
 
   return (
     <AppLayout>
@@ -48,16 +50,18 @@ export default function Index() {
                 >
                   <div className="mb-3 flex items-start justify-between">
                     <h3 className="text-sm font-semibold text-foreground">{project.name}</h3>
-                    <button
-                      onClick={(e) => {
-                        e.preventDefault();
-                        e.stopPropagation();
-                        deleteProject.mutate(project.id);
-                      }}
-                      className="rounded p-1 text-muted-foreground opacity-0 transition-all hover:bg-destructive/10 hover:text-destructive group-hover:opacity-100"
-                    >
-                      <Trash2 className="h-3.5 w-3.5" />
-                    </button>
+                    {project.owner_id === user?.id && (
+                      <button
+                        onClick={(e) => {
+                          e.preventDefault();
+                          e.stopPropagation();
+                          deleteProject.mutate(project.id);
+                        }}
+                        className="rounded p-1 text-muted-foreground opacity-0 transition-all hover:bg-destructive/10 hover:text-destructive group-hover:opacity-100"
+                      >
+                        <Trash2 className="h-3.5 w-3.5" />
+                      </button>
+                    )}
                   </div>
                   {project.description && (
                     <p className="mb-3 text-xs text-muted-foreground line-clamp-2">{project.description}</p>

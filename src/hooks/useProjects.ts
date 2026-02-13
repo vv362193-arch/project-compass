@@ -37,8 +37,17 @@ export function useProjects() {
 
   const deleteProject = useMutation({
     mutationFn: async (projectId: string) => {
-      const { error } = await supabase.from('projects').delete().eq('id', projectId);
+      // Only owners can delete — RLS enforces this on the DB side
+      const { data, error, count } = await supabase
+        .from('projects')
+        .delete()
+        .eq('id', projectId)
+        .eq('owner_id', user!.id)
+        .select('id');
       if (error) throw error;
+      if (!data || data.length === 0) {
+        throw new Error('Only the project owner can delete this project');
+      }
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['projects'] });
