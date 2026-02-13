@@ -1,17 +1,18 @@
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 
-// Restrict CORS to the Supabase project URL and localhost for dev
+// CORS: allow localhost for dev and Vercel production domain
 const allowedOrigins = [
   Deno.env.get("SITE_URL") || "",
+  "https://project-compass-nine.vercel.app",
   "http://localhost:8080",
   "http://localhost:5173",
 ];
 
 function getCorsHeaders(req: Request) {
   const origin = req.headers.get("Origin") || "";
-  const allowed = allowedOrigins.includes(origin) ? origin : allowedOrigins[0];
+  const isAllowed = allowedOrigins.includes(origin) || origin.endsWith(".vercel.app");
   return {
-    "Access-Control-Allow-Origin": allowed,
+    "Access-Control-Allow-Origin": isAllowed ? origin : allowedOrigins[1],
     "Access-Control-Allow-Headers":
       "authorization, x-client-info, apikey, content-type, x-supabase-client-platform, x-supabase-client-platform-version, x-supabase-client-runtime, x-supabase-client-runtime-version",
   };
